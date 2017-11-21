@@ -1,0 +1,3 @@
+[submodule "Libraries/Arduino-SerialCommands"]
+	path = Libraries/Arduino-SerialCommands
+	url = https://github.com/ppedro74/Arduino-SerialCommands.git
