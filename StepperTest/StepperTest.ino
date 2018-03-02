@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Stepper.h>
 
-const int CHECK_STEPPER_INTERVAL = 20;
 const int DEBUG_INTERVAL = 1000;
 
 //L298N H-Bridge
@@ -82,64 +81,59 @@ void setup()
     }
 
     //150 revolutions per minute
-    stepper_.setSpeed(150);
+    stepper_.setSpeed(600);
 }
 
 void loop()
 {
-    if (millis() >= check_stepper_next_millis_)
+    if (stepper_state_ != STEPPER_STATE_IDLE)
     {
-        check_stepper_next_millis_ = millis() + CHECK_STEPPER_INTERVAL;
-
-        if (stepper_state_ != STEPPER_STATE_IDLE)
+        if (stepper_prev_state_ != stepper_state_)
         {
-            if (stepper_prev_state_ != stepper_state_)
+            Serial.print("Start moving ");
+            Serial.print(STEPPER_STATE_MOVING_UP ? "Up" : "Down");
+            Serial.println();
+        }
+
+        stepper_.step(stepper_state_ == STEPPER_STATE_MOVING_UP ? 1 : -1);
+        position_ += stepper_state_ == STEPPER_STATE_MOVING_UP ? 1 : -1;
+
+        if (stepper_state_ == STEPPER_STATE_MOVING_UP)
+        {
+            if (digitalRead(TOP_SWITCH_PIN) == LOW)
             {
-                Serial.print("Start moving ");
-                Serial.print(STEPPER_STATE_MOVING_UP ? "Up" : "Down");
-                Serial.println();
-            }
-
-            stepper_.step(stepper_state_ == STEPPER_STATE_MOVING_UP ? 1 : -1);
-            position_ += stepper_state_ == STEPPER_STATE_MOVING_UP ? 1 : -1;
-
-            if (stepper_state_ == STEPPER_STATE_MOVING_UP)
-            {
-                if (digitalRead(TOP_SWITCH_PIN) == LOW)
-                {
-                    Serial.println("Reached the Top!");
-                    stepper_state_ = STEPPER_STATE_IDLE;
-
-                    Serial.print("Position=");
-                    Serial.print(position_);
-                    Serial.println();
-                }
-            }
-            else if (stepper_state_ == STEPPER_STATE_MOVING_DOWN)
-            {
-                if (digitalRead(BOTTOM_SWITCH_PIN) == LOW)
-                {
-                    Serial.println("Reached the Bottom!");
-                    stepper_state_ = STEPPER_STATE_IDLE;
-
-                    Serial.print("Position=");
-                    Serial.print(position_);
-                    Serial.println();
-
-                    position_ = 0;
-                }
-            }
-
-            if (millis() >= debug_next_millis_)
-            {
-                debug_next_millis_ = millis() + DEBUG_INTERVAL;
+                Serial.println("Reached the Top!");
+                stepper_state_ = STEPPER_STATE_IDLE;
 
                 Serial.print("Position=");
                 Serial.print(position_);
                 Serial.println();
             }
         }
+        else if (stepper_state_ == STEPPER_STATE_MOVING_DOWN)
+        {
+            if (digitalRead(BOTTOM_SWITCH_PIN) == LOW)
+            {
+                Serial.println("Reached the Bottom!");
+                stepper_state_ = STEPPER_STATE_IDLE;
 
-        stepper_prev_state_ = stepper_state_;
+                Serial.print("Position=");
+                Serial.print(position_);
+                Serial.println();
+
+                position_ = 0;
+            }
+        }
+
+        if (millis() >= debug_next_millis_)
+        {
+            debug_next_millis_ = millis() + DEBUG_INTERVAL;
+
+            Serial.print("Position=");
+            Serial.print(position_);
+            Serial.println();
+        }
     }
+
+    stepper_prev_state_ = stepper_state_;
 }
