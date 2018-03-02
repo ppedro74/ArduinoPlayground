@@ -23,7 +23,8 @@ enum STEPPER_STATE
     STEPPER_STATE_MOVING_DOWN
 };
 
-Stepper stepper_(1000, IN1_PIN, IN2_PIN, IN3_PIN, IN4_PIN);
+//20 = the number of steps in one revolution
+Stepper stepper_(20, IN1_PIN, IN2_PIN, IN3_PIN, IN4_PIN);
 volatile STEPPER_STATE stepper_state_ = STEPPER_STATE_IDLE;
 volatile STEPPER_STATE stepper_prev_state_ = STEPPER_STATE_IDLE;
 volatile STEPPER_STATE stepper_last_direction_ = STEPPER_STATE_MOVING_UP;
@@ -79,16 +80,19 @@ void setup()
     {
         Serial.println("Stepper is somewhere!");
     }
+
+    //150 revolutions per minute
+    stepper_.setSpeed(150);
 }
 
 void loop()
 {
     if (millis() >= check_stepper_next_millis_)
     {
+        check_stepper_next_millis_ = millis() + CHECK_STEPPER_INTERVAL;
+
         if (stepper_state_ != STEPPER_STATE_IDLE)
         {
-            check_stepper_next_millis_ = millis() + CHECK_STEPPER_INTERVAL;
-
             if (stepper_prev_state_ != stepper_state_)
             {
                 Serial.print("Start moving ");
