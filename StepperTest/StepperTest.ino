@@ -80,7 +80,7 @@ void setup()
         Serial.println("Stepper is somewhere!");
     }
 
-    //150 revolutions per minute
+    //600 revolutions per minute
     stepper_.setSpeed(600);
 }
 
