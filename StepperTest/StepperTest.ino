@@ -52,13 +52,9 @@ void setup()
 {
     Serial.begin(115200);
 
-    //enable coil A
+    //H-Bridge
     pinMode(ENA_PIN, OUTPUT);
-    digitalWrite(ENA_PIN, HIGH);
-
-    //enable coil B
     pinMode(ENB_PIN, OUTPUT);
-    digitalWrite(ENB_PIN, HIGH);
 
     pinMode(TOP_SWITCH_PIN, INPUT_PULLUP);
     pinMode(BOTTOM_SWITCH_PIN, INPUT_PULLUP);
@@ -80,19 +76,23 @@ void setup()
         Serial.println("Stepper is somewhere!");
     }
 
-    //600 revolutions per minute
-    stepper_.setSpeed(600);
+    //100 revolutions per minute
+    stepper_.setSpeed(100);
 }
 
 void loop()
 {
     if (stepper_state_ != STEPPER_STATE_IDLE)
     {
-        if (stepper_prev_state_ != stepper_state_)
+        if (stepper_prev_state_ == STEPPER_STATE_IDLE)
         {
             Serial.print("Start moving ");
             Serial.print(STEPPER_STATE_MOVING_UP ? "Up" : "Down");
             Serial.println();
+
+            //Enable H-Bridge M1 & M2
+            digitalWrite(ENA_PIN, HIGH);
+            digitalWrite(ENB_PIN, HIGH);
         }
 
         stepper_.step(stepper_state_ == STEPPER_STATE_MOVING_UP ? 1 : -1);
@@ -125,15 +125,30 @@ void loop()
             }
         }
 
-        if (millis() >= debug_next_millis_)
+        if (stepper_state_ == STEPPER_STATE_IDLE)
         {
-            debug_next_millis_ = millis() + DEBUG_INTERVAL;
+            Serial.println("Stopped!");
 
-            Serial.print("Position=");
-            Serial.print(position_);
-            Serial.println();
+            //Disable H-Bridge M1 & M2
+            digitalWrite(ENA_PIN, LOW);
+            digitalWrite(ENB_PIN, LOW);
         }
+
+        stepper_prev_state_ = stepper_state_;
     }
 
-    stepper_prev_state_ = stepper_state_;
+    if (millis() >= debug_next_millis_)
+    {
+        debug_next_millis_ = millis() + DEBUG_INTERVAL;
+
+        Serial.print("Position=");
+        Serial.print(position_);
+        Serial.print(" State=");
+        Serial.print(stepper_state_);
+        Serial.print(" PrevState=");
+        Serial.print(stepper_prev_state_);
+        Serial.print(" LastDirection=");
+        Serial.print(stepper_last_direction_);
+        Serial.println();
+    }
 }
