@@ -1,3 +1,9 @@
 [submodule "Libraries/Arduino-SerialCommands"]
 	path = Libraries/Arduino-SerialCommands
 	url = https://github.com/ppedro74/Arduino-SerialCommands.git
+[submodule "Libraries/IRremote"]
+	path = Libraries/IRremote
+	url = https://github.com/z3t0/Arduino-IRremote.git
+[submodule "Libraries/StepperDriver"]
+	path = Libraries/StepperDriver
+	url = https://github.com/laurb9/StepperDriver.git
